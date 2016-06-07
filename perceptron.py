@@ -14,7 +14,7 @@ class Perceptron:
 
 		currentPattern = []
 
-		trainingStepSize = 0.05
+		trainingStepSize = 0.2
 
 		def __init__(self):
 				self.inputNeurons.append(Neuron("input"))
@@ -41,7 +41,7 @@ class Perceptron:
 		def propagate(self):
 				for (i, pattern) in enumerate(self.currentPattern):
 					self.propagatePattern(pattern)
-					print("Traindata", i, ": Output: ", self.outputNeurons[0].berechneAusgabe())
+					print("Traindata", i, ": Output: ", round(self.outputNeurons[0].berechneAusgabe(), 2))
 
 		def propagatePattern(self, pattern):
 			self.inputNeurons[0].aktivierungszustand = pattern[0]
@@ -93,6 +93,6 @@ if __name__ == "__main__":
 	perceptron.propagate()
 
 	print()
-	perceptron.trainEinstufig(2000)
+	perceptron.trainEinstufig(1000)
 	perceptron.propagate()
 	perceptron.printGewichte()

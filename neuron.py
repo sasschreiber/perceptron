@@ -1,4 +1,4 @@
-# Something
+from functions import *
 
 class Neuron:
 	typ = 'hidden' #input, output or hidden
@@ -16,7 +16,7 @@ class Neuron:
 	delta = 0
 
 
-	propagierungsfunktion = "Identity"
+	propagierungsfunktion = "Logistic"
 
 	aktivierungsfunktion = "Identity"
 
@@ -27,8 +27,8 @@ class Neuron:
 	def berechneAusgabe(self):
 		if (self.aktivierungsfunktion == "Identity"):
 			return self.aktivierungszustand
-		#else:
-			#tba, andere ausgabefunktion
+		elif (self.aktivierungsfunktion == "Logistic"):
+			return logistic_function(self.aktivierungszustand)
 
 
 	def propagiere(self):
@@ -46,7 +46,7 @@ class Neuron:
 		child.inputgewichte.append(gewicht)
 
 	def berechneAktivierung(self, inputvalue):
-		if (self.aktivierungsfunktion == "Identity"):
+		if (self.propagierungsfunktion == "Identity"):
 			self.aktivierungszustand = inputvalue
-		#else if (self.aktivierungsfuntion == "Logistic"):
-			#to come
+		elif (self.propagierungsfunktion == "Logistic"):
+			self.aktivierungszustand = logistic_function(inputvalue)
