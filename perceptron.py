@@ -1,11 +1,12 @@
 import random
 import sys
+#Debug module
+import pprint
 from neuron import *
 
 class Perceptron:
 
-		inputNeurons = []
-		outputNeurons = []
+		layers = []
 
 		trainData = {}
 
@@ -17,20 +18,26 @@ class Perceptron:
 		trainingStepSize = 0.2
 
 		def __init__(self):
-				self.inputNeurons.append(Neuron("input"))
-				self.inputNeurons.append(Neuron("input"))
+			#Todo: Simplify creation of large nets
+			self.layers.append([])
+			self.layers.append([])
+			pprint.pprint(self.layers)
 
-				self.outputNeurons.append(Neuron("output"))
-				self.inputNeurons[0].connectTo(self.outputNeurons[0], 0.5)
-				self.inputNeurons[1].connectTo(self.outputNeurons[0], 0.5)
+			self.layers[0].append(Neuron("input"))
+			self.layers[0].append(Neuron("input"))
 
-				self.randomizeNet()
+			self.layers[1].append(Neuron("output"))
 
-		def randomizeNet(self):
+			self.connectLayers()
+
+
+		def connectLayers(self):
 			random.seed()
-			for (i, neuron) in enumerate(self.outputNeurons):
-				for (j, inputneuron) in enumerate(self.inputNeurons):
-					neuron.inputgewichte[j] = random.uniform(-1, 1)
+			for (i, layer) in enumerate(self.layers):
+				if (i < (len(self.layers)-1)):
+					for inputneuron in layer:
+						for outputneuron in self.layers[i+1]:
+							inputneuron.connectTo(outputneuron, random.uniform(-1, 1))
 
 
 		def setPattern(self, patternName):
@@ -41,47 +48,62 @@ class Perceptron:
 		def propagate(self):
 				for (i, pattern) in enumerate(self.currentPattern):
 					self.propagatePattern(pattern)
-					print("Traindata", i, ": Output: ", round(self.outputNeurons[0].berechneAusgabe(), 2))
+					print("Traindata", i, ": Output: ")
+					outstr = ""
+					for neuron in self.layers[-1]:
+						outstr += " " + str(round(neuron.berechneAusgabe(), 8))
+					print(outstr)
+
+
 
 		def propagatePattern(self, pattern):
-			self.inputNeurons[0].aktivierungszustand = pattern[0]
-			self.inputNeurons[1].aktivierungszustand = pattern[1]
+			#Set start values for input neurons
+			#TODO: Check for valid patterns, since too long/short patterns would not work correctly
+			for (i, neuron) in enumerate(self.layers[0]):
+				neuron.aktivierungszustand = pattern[i]
 
-			self.outputNeurons[0].propagiere()        	
+			#Loop through all layers except the first one and calculate output
+			propagationLayers = self.layers[1:]
+			for layer in propagationLayers:
+				for neuron in layer:
+					neuron.propagiere()   	
 
 		def trainEinstufig(self, steps):
 			for i in range(steps):
 				for(p, pattern) in enumerate(self.currentPattern):
 					self.propagatePattern(pattern)
 
-					inputdeltas = []
-					outputdeltas = []
+					backpropLayers = self.layers.copy()
+					#We need to calculate deltas from bottom up, so shallow copy and reverse the layers, remove input layer (no delta)
+					backpropLayers.reverse()
+					firstLayer = backpropLayers.pop()
 
-					t = pattern[2]
-					#-------- Deltas berechnen -------------
-					for(j, neuron) in enumerate(self.outputNeurons):
-						# Berechnung des Fehlers: Delta-pj  = t-pj - o-pj
-						neuron.delta = t - neuron.berechneAusgabe()
+					# #-------- Deltas berechnen -------------
 
-					for(j, neuron) in enumerate(self.inputNeurons):
-						# Berechnung für alle anderen Schichten: Summe (deltas * gewichte)
-						# Geht davon aus, dass alle neuronen mit allen der darüber liegenden Schicht verbunden sind
-						summe = 0
-						for (k, outputneuron) in enumerate(self.outputNeurons):
-							summe += outputneuron.delta * outputneuron.inputgewichte[j]
-						neuron.delta = summe
+					for (l, layer) in enumerate(backpropLayers):
+						for (n, neuron) in enumerate(layer):
+							# Delta for output layer Delta-pj  = t-pj - o-pj
+							if (l == 0):
+								t = pattern[(len(firstLayer) + n)]
+								neuron.delta = t - neuron.berechneAusgabe()
+							else:
+								summe = 0
+								for (k, connection) in neuron.outputs:
+									summe += connection.target.delta * connection.weight
+								neuron.delta = summe
 
 					#------ Gewichte ändern ---------------
 					
-					for (j, neuron) in enumerate(self.outputNeurons):
-						for (k, inputNeuron) in enumerate(self.inputNeurons):
-							neuron.inputgewichte[k] = neuron.inputgewichte[k] + (self.trainingStepSize * neuron.delta * inputNeuron.berechneAusgabe())
+					for (l, layer) in enumerate(backpropLayers):
+						for (n, neuron) in enumerate(layer):
+							for (c, connection) in enumerate(neuron.inputs):
+								connection.weight += (self.trainingStepSize * neuron.delta * connection.source.berechneAusgabe())
 
 
 		def printGewichte(self):
-			for (j, neuron) in enumerate(self.outputNeurons):
-				for (k, inputNeuron) in enumerate(self.inputNeurons):
-					print("Gewicht in outputneuron ", j, " zu inputneuron ", k, ": ", neuron.inputgewichte[k])
+			for (j, neuron) in enumerate(self.layers[-1]):
+				for (k, connection) in enumerate(neuron.inputs):
+					print("Gewicht in outputneuron ", j, " zu inputneuron ", k, ": ", connection.weight)
 
 
 
@@ -95,4 +117,4 @@ if __name__ == "__main__":
 	print()
 	perceptron.trainEinstufig(1000)
 	perceptron.propagate()
-	perceptron.printGewichte()
+	#perceptron.printGewichte()

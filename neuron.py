@@ -9,8 +9,6 @@ class Neuron:
 
 	inputs = []
 
-	inputgewichte = []
-
 	outputs = []
 
 	delta = 0
@@ -33,20 +31,33 @@ class Neuron:
 
 	def propagiere(self):
 		netInput = 0
-		for (i, inputneuron) in enumerate(self.inputs):
-			netInput += (inputneuron.berechneAusgabe() * self.inputgewichte[i])
+		for (i, connection) in enumerate(self.inputs):
+			netInput += (connection.source.berechneAusgabe() * connection.weight)
 		self.berechneAktivierung(netInput)
 
-	def connectFrom(self, parent, gewicht):
-		self.inputs.append(parent)
-		self.inputgewichte.append(gewicht)
+	def connectFrom(self, parent, weight):
+		connection = Axon(parent, self, weight)
+		self.inputs.append(connection)
+		parent.outputs.append(connection)
 
-	def connectTo(self, child, gewicht):
-		child.inputs.append(self)
-		child.inputgewichte.append(gewicht)
+	def connectTo(self, child, weight):
+		connection = Axon(self, child, weight)
+		child.inputs.append(connection)
+		self.outputs.append(connection)
 
 	def berechneAktivierung(self, inputvalue):
 		if (self.propagierungsfunktion == "Identity"):
 			self.aktivierungszustand = inputvalue
 		elif (self.propagierungsfunktion == "Logistic"):
 			self.aktivierungszustand = logistic_function(inputvalue)
+
+
+class Axon:
+	source = None
+	target = None
+	weight = 0
+
+	def __init__(self, source, target, weight):
+		self.source = source
+		self.target = target
+		self.weight = weight
