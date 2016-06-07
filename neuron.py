@@ -13,6 +13,8 @@ class Neuron:
 
 	outputs = []
 
+	delta = 0
+
 
 	propagierungsfunktion = "Identity"
 
@@ -22,15 +24,18 @@ class Neuron:
 		self.typ = typ
 
 
-	def ausgabe(self):
-                if (self.aktivierungsfunktion == "Identity"):
-                        return self.aktivierungszustand
+	def berechneAusgabe(self):
+		if (self.aktivierungsfunktion == "Identity"):
+			return self.aktivierungszustand
+		#else:
+			#tba, andere ausgabefunktion
+
 
 	def propagiere(self):
 		netInput = 0
-		for (i, input) in enumerate(self.inputs):
-			netInput += (input.ausgabe() * self.inputgewichte[i])
-		self.aktivierungszustand = netInput
+		for (i, inputneuron) in enumerate(self.inputs):
+			netInput += (inputneuron.berechneAusgabe() * self.inputgewichte[i])
+		self.berechneAktivierung(netInput)
 
 	def connectFrom(self, parent, gewicht):
 		self.inputs.append(parent)
@@ -40,9 +45,8 @@ class Neuron:
 		child.inputs.append(self)
 		child.inputgewichte.append(gewicht)
 
-
-
-
-
-
-
+	def berechneAktivierung(self, inputvalue):
+		if (self.aktivierungsfunktion == "Identity"):
+			self.aktivierungszustand = inputvalue
+		#else if (self.aktivierungsfuntion == "Logistic"):
+			#to come
