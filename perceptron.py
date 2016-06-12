@@ -12,20 +12,21 @@ class Perceptron:
 
 		trainData['OR'] = [(0, 0, 0), (1, 0, 1), (0, 1, 1), (1, 1, 1)]
 		trainData['AND'] = [(0, 0, 0), (1, 0, 0), (0, 1, 0), (1, 1, 1)]
+		trainData['XOR'] = [(0, 0, 0), (1, 0, 1), (0, 1, 1), (1, 1, 0)]
 
 		currentPattern = []
 
 		trainingStepSize = 0.2
 
 		def __init__(self):
+			self.layers = []
 			#Todo: Simplify creation of large nets
 			self.layers.append([])
 			self.layers.append([])
-			pprint.pprint(self.layers)
+			#self.layers.append([])
 
 			self.layers[0].append(Neuron("input"))
 			self.layers[0].append(Neuron("input"))
-
 			self.layers[1].append(Neuron("output"))
 
 			self.connectLayers()
@@ -37,7 +38,7 @@ class Perceptron:
 				if (i < (len(self.layers)-1)):
 					for inputneuron in layer:
 						for outputneuron in self.layers[i+1]:
-							inputneuron.connectTo(outputneuron, random.uniform(-1, 1))
+							inputneuron.connectTo(outputneuron, random.uniform(0, 1))
 
 
 		def setPattern(self, patternName):
@@ -51,7 +52,7 @@ class Perceptron:
 					print("Traindata", i, ": Output: ")
 					outstr = ""
 					for neuron in self.layers[-1]:
-						outstr += " " + str(round(neuron.berechneAusgabe(), 8))
+						outstr += " " + str(round(neuron.berechneAusgabe(), 5))
 					print(outstr)
 
 
@@ -85,12 +86,9 @@ class Perceptron:
 							# Delta for output layer Delta-pj  = t-pj - o-pj
 							if (l == 0):
 								t = pattern[(len(firstLayer) + n)]
-								neuron.delta = t - neuron.berechneAusgabe()
+								neuron.berechneDelta(t)
 							else:
-								summe = 0
-								for (k, connection) in neuron.outputs:
-									summe += connection.target.delta * connection.weight
-								neuron.delta = summe
+								neuron.berechneDelta()
 
 					#------ Gewichte ändern ---------------
 					
@@ -109,7 +107,7 @@ class Perceptron:
 
 if __name__ == "__main__":
 	perceptron = Perceptron()
-	perceptron.printGewichte()
+	#perceptron.printGewichte()
 	print()
 	perceptron.setPattern("AND")
 	perceptron.propagate()
